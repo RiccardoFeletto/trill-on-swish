@@ -2820,8 +2820,6 @@ timed_forall(Cond,Action) :-
 ---+ See Also
 The file owl2_from_rdf.plt has some examples
 */
-:- thread_local ns4query/1.
-
 load_owl(String):-
   pengine_self(Self),
   pengine_property(Self,module(M)),
@@ -2834,7 +2832,6 @@ load_owl(String):-
   owl_canonical_parse_3(['ont']),
   parse_probabilistic_annotation_assertions.
 
-
 assert_list(_M,[], _):-!.
 assert_list(M,[H|T], Source) :-
     H=..[_|Args],
@@ -2842,58 +2839,14 @@ assert_list(M,[H|T], Source) :-
 	assert(M:H1),
         assert_list(M,T, Source).
 
-find_all_probabilistic_annotations(Ax,PV):-
-	annotation(Ax,'https://sites.google.com/a/unife.it/ml/disponte#probability',literal(type(_Type, PV))),
-	atomic(PV).
-
-find_all_probabilistic_annotations(Ax,PV):-
-	annotation(Ax,'https://sites.google.com/a/unife.it/ml/disponte#probability',literal(PV)),
-	atomic(PV).
-  
 
 parse_probabilistic_annotation_assertions :-
-  forall(find_all_probabilistic_annotations(Ax,PV),
+  forall(annotation(Ax,'https://sites.google.com/a/unife.it/ml/disponte#probability',literal(type(_Type, PV))),
        (assert_axiom(annotationAssertion('https://sites.google.com/a/unife.it/ml/disponte#probability',Ax,literal(PV))))
   ),
   % forall(aNN(X,Y,Z),assert(annotation(X,Y,Z))), VV remove 25/1/11
   % annotation/3 axioms created already during owl_parse_annotated_axioms/1
   retractall(annotation(_,'https://sites.google.com/a/unife.it/ml/disponte#probability',_)).
-
-query_is([Q|_],0,Q):-!.
-query_is([_|T],N,Q):-
-  NN is N - 1,
-  query_is(T,NN,Q).
-
-set_new_query([_|T],0,NQ,[NQ|T]):-!.
-set_new_query([Q|T],N,NQ,[Q|NT]):-
-  NN is N - 1,
-  set_new_query(T,NN,NQ,NT).
-
-query_expand(CQ):-
-  CQ =.. [CQP | CQArgs],
-  member((CQP,PosQ),[(aggregate_all,1), (limit,1)]),!,
-  query_is(CQArgs,PosQ,Q),
-  Q =.. [P|Args],
-  pengine_self(Self),
-  pengine_property(Self,module(M)),
-  M:ns4query(NSList),!,
-  retract(M:ns4query(NSList)),
-  expand_all_ns(Args,NSList,NewArgs),!,
-  NQ =.. [P|NewArgs],
-  set_new_query(CQArgs,PosQ,NQ,CQNewArgs),
-  NCQ =.. [CQP|CQNewArgs],
-  call(NCQ).
-  
-/*query_expand(limit(A,Q)):-
-  Q =.. [P|Args],
-  pengine_self(Self),
-  pengine_property(Self,module(M)),
-  M:ns4query(NSList),!,
-  retract(M:ns4query(NSList)),
-  expand_all_ns(Args,NSList,NewArgs),!,
-  NQ =.. [P|NewArgs],
-  write(NQ),
-  call(limit(A,NQ)).*/
 
 query_expand(Q):-
   Q =.. [P|Args],
@@ -2906,21 +2859,6 @@ query_expand(Q):-
   call(NQ).
 
 expand_all_ns([],_,[]).
-
-expand_all_ns([P|T],NSList,[NP|NewArgs]):-
-  compound(P),
-  P =.. [N | [Args]],!,
-  expand_all_ns(Args,NSList,NewPArgs),
-  NP =.. [N, [NewPArgs]],
-  expand_all_ns(T,NSList,NewArgs).
-
-expand_all_ns([P|T],NSList,[NP|NewArgs]):-
-  compound(P),
-  P =.. [N | Args],!,
-  expand_all_ns(Args,NSList,NewPArgs),
-  NP =.. [N| NewPArgs],
-  expand_all_ns(T,NSList,NewArgs).
-
 expand_all_ns([H|T],NSList,[H|NewArgs]):-
   check_query_arg(H),!,
   expand_all_ns(T,NSList,NewArgs).

@@ -117,7 +117,7 @@ instanceOf(Class,Ind):-
   add(ABox,(classAssertion(complementOf(Class),Ind),[]),ABox0),
   %findall((ABox1,Tabs1),apply_rules_0((ABox0,Tabs),(ABox1,Tabs1)),L),
   apply_all_rules((ABox0,Tabs),(ABox1,Tabs1)),!,
-  clash((ABox1,Tabs1),_),!.
+  clash((ABox1,Tabs1),_).
 
 instanceOf(_,_):-
   write('Inconsistent ABox').
@@ -144,7 +144,7 @@ unsat(Concept):-
   add(ABox,(classAssertion(Concept,1),[]),ABox0),
   %findall((ABox1,Tabs1),apply_rules_0((ABox0,Tabs),(ABox1,Tabs1)),L),
   apply_all_rules((ABox0,Tabs),(ABox1,Tabs1)),!,
-  clash((ABox1,Tabs1),_),!.
+  clash((ABox1,Tabs1),_).
 
 unsat(_):-
   write('Inconsistent ABox').
@@ -163,7 +163,7 @@ inconsistent_theory:-
   build_abox((ABox,Tabs)),
   \+ clash((ABox,Tabs),_),!,
   apply_all_rules((ABox,Tabs),(ABox1,Tabs1)),!,
-  clash((ABox1,Tabs1),_),!.
+  clash((ABox1,Tabs1),_).
 
 inconsistent_theory:-
   write('Inconsistent!').
@@ -339,9 +339,9 @@ apply_nondet_rules([],ABox,ABox1):-
 
 apply_nondet_rules([H|_],ABox,ABox1):-
   C=..[H,ABox,L],
-  call(C),
+  call(C),!,
   member(ABox1,L),
-  ABox \= ABox1,!.
+  ABox \= ABox1.
 
 apply_nondet_rules([_|T],ABox,ABox1):-
   apply_nondet_rules(T,ABox,ABox1).
